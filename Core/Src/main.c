@@ -27,6 +27,8 @@ RTC Connections: (+)->5V (-)->GND D->PB7 (I2C1_SDA) C->PB6 (I2C1_SCL)
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
+#include <stdint.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -137,7 +139,7 @@ int main(void)
   //TASK 6
   //YOUR CODE HERE
   // store initial time in the RTC to keep it running
-  setTime(00, 7, 10, 4, 22, 9, 22);
+  //setTime(00, 11, 6, 6, 24, 9, 22);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -153,18 +155,26 @@ int main(void)
 
 	 //TO DO:
 	 //TASK 6
+	 getTime();
 
-	 sprintf(buffer, "%d \r\n", 55555555555555);
+	 sprintf(buffer, "%d \r\n", time);
 	 //This creates a string "55555555555555" with a pointer called buffer
 
 	 //Transmit data via UART
 	 //Blocking! fine for small buffers
 	 if (HAL_UART_Transmit(&huart2, buffer, sizeof(buffer), 1000) != HAL_OK)
-		Error_Handler();
+	    Error_Handler();
 
 	 HAL_Delay(500);
 
 	 //YOUR CODE HERE
+	 //sprintf(buffer, "%d \r\n", "Test of Time");
+	 int result = epochFromTime(time);
+	 //pause_sec(5);
+	 sprintf(buffer, "%d \r\n", result);
+	 if (HAL_UART_Transmit(&huart2, buffer, sizeof(buffer), 1000) != HAL_OK)
+	 	    Error_Handler();
+	 HAL_Delay(500);
 
 
 	 /* USER CODE BEGIN 3 */
@@ -453,22 +463,28 @@ int epochFromTime(TIME time){
 
 	//YOUR CODE HERE
 
-	/*switch(time.month) {
-		case 1:
-			time.dayofmonth += 31;
-			break;
-		case 2:
-			time.dayofmonth
+	int daySeconds = 86400;
+	int epochTime = 0;
+	int days = 0;
 
-	/*
-	 *COMPLETE THE SWITCH CASE OR INSERT YOUR OWN LOGIC
-	 */
+	int monthDays[13] = {0,31,28,31,30,31,30,31,31,30,31,30,31};
+	epochTime = epochTime +((time.year - 22)*daySeconds*365);
 
-	/*default:
-		day = day;
-	}*/
+	for (int i=1; i<13; i++) {
+		days += monthDays[i];
+	}
 
-	return EPOCH_2022;
+	days += (time.dayofmonth - 1);
+	epochTime += days*daySeconds;
+	epochTime += (time.hour*3600);
+	epochTime += (time.minutes*60);
+	epochTime += time.seconds;
+
+	int result = EPOCH_2022 + epochTime;
+
+	printf("EPOCH Time for 2022 is => %d", result);
+
+	return result;
 }
 
 /* USER CODE END 4 */
